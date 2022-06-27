@@ -1,0 +1,39 @@
+---
+- hosts: servers
+  gather_facts: no
+  tasks:
+    - name: Install required system packages
+      apt: name={{ item }} state=latest update_cache=yes
+      loop: ['gnupg', 'fontconfig', 'openjdk-11-jre']
+
+    - name: Add Jenkins GPG apt Key
+      apt_key:
+        url: https://pkg.jenkins.io/debian-stable/jenkins.io.key 
+        state: present
+
+    - name: Add Jekins Repository
+      apt_repository:
+        repo: deb https://pkg.jenkins.io/debian-stable binary/ 
+        state: present
+
+    - name: Update apt and install jenkins
+      apt: name={{ item }} update_cache=yes state=latest
+      loop: ['jenkins']
+
+    - name: "Allow jenkins listen on IPv4"
+      lineinfile:
+        path: /etc/systemd/system/multi-user.target.wants/jenkins.service
+        regexp: '^Environment="JAVA_OPTS=(.*)"'
+        line: 'Environment="JAVA_OPTS=\1 -Djava.net.preferIPv4Stack=true"'
+        backrefs: yes
+
+    - name: Restart jenkins service 
+      ansible.builtin.systemd:
+        state: restarted
+        daemon_reload: yes
+        name: jenkins
+
+    - name: Enable jenkins service
+      ansible.builtin.systemd:
+        enabled: yes
+        name: jenkins

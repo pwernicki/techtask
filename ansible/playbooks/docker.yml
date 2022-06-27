@@ -1,0 +1,21 @@
+---
+- hosts: servers
+  gather_facts: no
+  tasks:
+    - name: Install required system packages
+      apt: name={{ item }} state=latest update_cache=yes
+      loop: ['ca-certificates', 'curl', 'gnupg', 'lsb-release']
+
+    - name: Add Docker GPG apt Key
+      apt_key:
+        url: https://download.docker.com/linux/debian/gpg
+        state: present
+
+    - name: Add Docker Repository
+      apt_repository:
+        repo: deb https://download.docker.com/linux/debian bullseye stable
+        state: present
+
+    - name: Update apt and install docker
+      apt: name={{ item }} update_cache=yes state=latest
+      loop: ['docker-ce', 'docker-ce-cli', 'containerd.io']
