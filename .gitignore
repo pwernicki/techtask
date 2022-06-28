@@ -1,0 +1,5 @@
+.ssh
+terraform/.aws
+terraform/.terraform*
+terraform/terraform.tfstate*
+docker/app/__pycache__
